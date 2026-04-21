@@ -20,8 +20,17 @@ export interface HistoryEntry {
   timestamp: number;
 }
 
-export const EXCHANGE_RATE_KRW_PER_GOLD = 10;
+export const EXCHANGE_RATE_KRW_PER_GOLD = 1;
 const EXP_PER_LEVEL = (lv: number) => 80 + lv * 40;
+
+export interface Totals {
+  goldEarned: number;
+  goldSpent: number;
+  krwReceived: number;
+  questsCompleted: number;
+  questsExpired: number;
+  exchangeCount: number;
+}
 
 interface GameState {
   hydrated: boolean;
@@ -32,6 +41,7 @@ interface GameState {
   availablePoints: number;
   quests: Quest[];
   history: HistoryEntry[];
+  totals: Totals;
   lastGeneratedDate: string | null;
   lastNoticeShownDate: string | null;
 
@@ -45,6 +55,15 @@ interface GameState {
   resetAll: () => void;
   debugSetYesterday: () => void;
 }
+
+const initialTotals: Totals = {
+  goldEarned: 0,
+  goldSpent: 0,
+  krwReceived: 0,
+  questsCompleted: 0,
+  questsExpired: 0,
+  exchangeCount: 0,
+};
 
 const initialStats: Stats = { str: 10, agi: 10, vit: 10, int: 10, sen: 10 };
 
@@ -63,6 +82,7 @@ export const useGameStore = create<GameState>()(
       availablePoints: 0,
       quests: [],
       history: [],
+      totals: initialTotals,
       lastGeneratedDate: null,
       lastNoticeShownDate: null,
 
@@ -86,7 +106,11 @@ export const useGameStore = create<GameState>()(
         set({
           quests: fresh,
           lastGeneratedDate: todayKey(),
-          history: [...expiredHistory, ...state.history].slice(0, 100),
+          history: [...expiredHistory, ...state.history].slice(0, 200),
+          totals: {
+            ...state.totals,
+            questsExpired: state.totals.questsExpired + expired.length,
+          },
         });
         return { generated: true, newQuestCount: fresh.length };
       },
@@ -132,7 +156,12 @@ export const useGameStore = create<GameState>()(
           level,
           availablePoints,
           quests: updatedQuests,
-          history: [entry, ...state.history].slice(0, 100),
+          history: [entry, ...state.history].slice(0, 200),
+          totals: {
+            ...state.totals,
+            goldEarned: state.totals.goldEarned + quest.goldReward,
+            questsCompleted: state.totals.questsCompleted + 1,
+          },
         });
 
         return { leveledUp, goldGained: quest.goldReward };
@@ -153,7 +182,13 @@ export const useGameStore = create<GameState>()(
         };
         set({
           gold: state.gold - goldAmount,
-          history: [entry, ...state.history].slice(0, 100),
+          history: [entry, ...state.history].slice(0, 200),
+          totals: {
+            ...state.totals,
+            goldSpent: state.totals.goldSpent + goldAmount,
+            krwReceived: state.totals.krwReceived + krw,
+            exchangeCount: state.totals.exchangeCount + 1,
+          },
         });
         return { krw, id, timestamp };
       },
@@ -179,6 +214,7 @@ export const useGameStore = create<GameState>()(
           availablePoints: 0,
           quests: seeded.quests,
           history: [],
+          totals: initialTotals,
           lastGeneratedDate: seeded.lastGeneratedDate,
           lastNoticeShownDate: null,
         });
@@ -207,6 +243,7 @@ export const useGameStore = create<GameState>()(
         availablePoints: state.availablePoints,
         quests: state.quests,
         history: state.history,
+        totals: state.totals,
         lastGeneratedDate: state.lastGeneratedDate,
         lastNoticeShownDate: state.lastNoticeShownDate,
       }),
