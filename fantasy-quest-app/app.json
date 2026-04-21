@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Awakened Quest",
+    "slug": "fantasy-quest-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#05070f",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.awakened.quest"
+    },
+    "android": {
+      "package": "com.awakened.quest",
+      "adaptiveIcon": {
+        "backgroundColor": "#05070f"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
